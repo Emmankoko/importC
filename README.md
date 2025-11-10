@@ -1,2 +1,2 @@
-# importC
-This is a test suite for The D programming language on its efficiency in compiling C libraries
+importC - Test suite for the feasibility of importC with usable C libraries
+

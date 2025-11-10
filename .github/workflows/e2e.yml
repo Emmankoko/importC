@@ -1,0 +1,126 @@
+# End-to-end test for importC - SDL2 for now
+name: E2E tests
+
+on:
+  pull_request:
+    branches:
+      - v*.*.x
+    paths-ignore:
+      - 'README.md'
+  push:
+    branches:
+      - main
+      - github-actions
+
+jobs:
+  main:
+    name: Run
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 22.04 x64, DMD (master)
+            runs-on: ubuntu-22.04
+            c-compiler: gcc-9
+            dc: dmd-master
+          - name: Ubuntu 22.04 x64, Clang, DMD (master)
+            runs-on: ubuntu-22.04
+            c-compiler: clang-13
+            dc: dmd-master
+          - name: macOS 14, LDC (latest)
+            runs-on: macos-14
+            c-compiler: clang
+            dc: ldc-latest
+          - name: Windows, DMD (master)
+            runs-on: windows-latest
+            c-compiler: msvc
+            dc: dmd-master
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+      ########################################
+      #    Setting up the D compiler         #
+      ########################################
+      - name: Prepare D compiler
+        uses: dlang-community/setup-dlang@v1
+        with:
+          compiler: ${{ matrix.dc }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      ########################################
+      #     Setting up the C compiler        #
+      ########################################
+      - name: '[Linux] Install and configure ${{ matrix.c-compiler }}'
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential software-properties-common ${{ matrix.c-compiler }}
+          echo "CC=${{ matrix.c-compiler }}" >> $GITHUB_ENV
+          echo "Using C compiler: ${{ matrix.c-compiler }}"
+          ${{ matrix.c-compiler }} --version
+
+      - name: '[macOS] Use system clang'
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          clang --version
+
+      - name: '[Windows] Setup MSVC environment'
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: '[Windows] Verify cl.exe'
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          where cl
+          cl
+
+      ########################################
+      #   Install SDL2                       #
+      ########################################
+
+      - name: '[Linux] Install SDL2'
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev
+
+      - name: '[macOS] Install SDL2'
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew update
+          brew install sdl2
+          brew --prefix sdl2
+
+      - name: '[Windows] Install SDL2'
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Write-Host "Downloading SDL2 development library..."
+          $url = "https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/SDL2-devel-2.30.5-VC.zip"
+          $zipPath = "$env:TEMP\sdl2.zip"
+          Invoke-WebRequest -Uri $url -OutFile $zipPath
+          Expand-Archive -Path $zipPath -DestinationPath "C:\sdl2"
+          # Add include and lib paths for MSVC builds
+          echo "INCLUDE=C:\sdl2\SDL2-2.30.5\include;$env:INCLUDE" >> $env:GITHUB_ENV
+          echo "LIB=C:\sdl2\SDL2-2.30.5\lib\x64;$env:LIB" >> $env:GITHUB_ENV
+          echo "SDL2 installed at C:\sdl2\SDL2-2.30.5"
+
+      ########################################
+      #        Run compilation tests         #
+      ########################################
+      - name: Run importC tests
+        shell: bash
+        working-directory: importc
+        run: |
+          echo "Using C compiler: ${CC:-cl}"
+          echo "Using D compiler: ${DC}"
+          dub run --compiler=${DC}

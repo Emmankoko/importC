@@ -1,0 +1,43 @@
+{
+	"authors": [
+		"Emmanuel Nyarko"
+	],
+	"copyright": "Copyright © 2025, Emmanuel Nyarko",
+	"description": "importC testing for sdl2 library",
+	"license": "proprietary",
+	"name": "test",
+
+	"dependencies": {
+        "bindbc-sdl": "~>1.5.0"
+    },
+
+    "subConfigurations": {
+        "bindbc-sdl": "dynamic"
+    },
+
+    "dflags-windows": [
+        "-P-IC:\\sdl2\\SDL2-2.30.5\\include"
+    ],
+    "lflags-windows": [
+        "C:\\sdl2\\SDL2-2.30.5\\lib\\x64\\SDL2.lib"
+    ],
+
+    "dflags-linux": [
+        "-P-I/usr/include/SDL2"
+    ],
+    "lflags-linux": [
+        "-lSDL2"
+    ],
+
+    "dflags-osx": [
+        "-P-I/opt/homebrew/opt/sdl2/include/SDL2"
+    ],
+    "lflags-osx": [
+        "-L-L/usr/local/opt/sdl2/lib",
+        "-lSDL2"
+    ],
+
+    "preGenerateCommands": [
+        "echo Building SDL2 cross-platform D project..."
+    ]
+}
