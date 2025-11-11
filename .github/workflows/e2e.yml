@@ -97,8 +97,8 @@ jobs:
         shell: bash
         run: |
           brew update
-          brew install sdl2
-          brew --prefix sdl2
+          brew install sdl3
+          brew --prefix sdl3
 
       - name: '[Windows] Install SDL2'
         if: runner.os == 'Windows'

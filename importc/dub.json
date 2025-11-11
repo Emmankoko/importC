@@ -30,11 +30,11 @@
     ],
 
     "dflags-osx": [
-        "-P-I/opt/homebrew/opt/sdl2/include/SDL2"
+        "-P-I/opt/homebrew/opt/sdl3/include/SDL3"
     ],
     "lflags-osx": [
-        "-L-L/usr/local/opt/sdl2/lib",
-        "-lSDL2"
+        "-L-L/usr/local/opt/sdl3/lib",
+        "-lSDL3"
     ],
 
     "preGenerateCommands": [
