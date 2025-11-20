@@ -1,30 +1,42 @@
 // https://github.com/dlang/dmd/issues/21932
 
 import std.stdio;
-import clibs.sdl;
+import clibs.sdl; // your SDL2 C bindings
 
-void main(){
-  // Flags for subsystems we want to initialize
-	SDL_InitFlags flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+void main()
+{
+    // Initialize video + events subsystems
+    uint flags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
 
-  // Initialize SDL
-	if(SDL_Init(flags)){
-		writeln("SDL was initialized");
-	}else{
-		writeln("Failed to initialize subsystems");
-    return;
-	}
+    if (SDL_Init(flags) != 0)
+    {
+        writeln("Failed to initialize SDL2: ", SDL_GetError());
+        return;
+    }
+    writeln("SDL2 successfully initialized.");
 
-  // Create our window
-  SDL_Window* window = SDL_CreateWindow("DSDL3 window w/ manual binding - no dub packages",
-                                        320,240,0);
+    // Create a window (SDL2 signature)
+    SDL_Window* window = SDL_CreateWindow(
+        "SDL2 D Example".ptr,       // needs .ptr for C compatibility
+        SDL_WINDOWPOS_CENTERED,    // SDL2 constant
+        SDL_WINDOWPOS_CENTERED,    // SDL2 constant
+        640,                       // width
+        480,                       // height
+        0                          // window flags
+    );
 
-  // 3 second delay (3000 ms)
-  SDL_Delay(3000);
+    if (window is null)
+    {
+        writeln("Failed to create SDL2 window: ", SDL_GetError());
+        SDL_Quit();
+        return;
+    }
 
-  // Destroy window
-  SDL_DestroyWindow(window);
+    // Wait 3 seconds
+    SDL_Delay(3000);
 
-	writeln("Shutting down initialized subsystems");
-	SDL_Quit();
+    // Cleanup
+    SDL_DestroyWindow(window);
+    writeln("Shutting down SDL2.");
+    SDL_Quit();
 }
